@@ -17,19 +17,20 @@ Composer はインストールを拒否。
 ## 結論
 
 コマンドプロンプトでは `^` が特殊文字として処理されます。
-Composer に `^` を含む引数を渡すには、次のいずれかを使います。
-引数を二重引用符で囲む。
+Composer に `^` を含む引数を渡すには、
+次の2つの方法のいずれかを使います。
+■ 引数を二重引用符で囲む
 ```cmd
 composer require --dev "phpunit/phpunit:^12"
 ```
-または、
-`^` を `^^` に置き換えます。
+■ `^` を `^^` に置き換えます
 ```
 composer require --dev phpunit/phpunit:^^12
 ```
 
 ## 予備知識
 ■ コマンドプロンプトでは、`^` は特殊文字で、次の文字をエスケープするために使用されます。
+■ Composer では、`^` は「バージョンの範囲を指定してインストールする」という意味で使用されます。
 ■ コマンドプロンプトでは、コマンドの引数全体を「\"」で囲むと、
 特殊文字を無効化し、
 文字列をそのまま引数として渡すことができます。
@@ -37,12 +38,11 @@ composer require --dev phpunit/phpunit:^^12
 >`composer require --dev phpunit/phpunit:^12`
 この場合の引数とはなにか？
 と疑問に思うかもしれません。
-- composer: 実行するコマンド名
-- require: Composer のサブコマンド
-- --dev: 開発用依存関係として追加するためのオプション
-- phpunit/phpunit:^12: Composer に渡す引数。追加したいパッケージ名とバージョン条件です
+composer            ▶️ 実行するコマンド名
+require             ▶️ Composer のサブコマンド
+--dev               ▶️ 開発用依存関係として追加するためのオプション
+phpunit/phpunit:^12 ▶️ Composer に渡す引数。追加したいパッケージ名とバージョン条件です
 
-■ Composer では、`^` は「バージョンの範囲を指定してインストールする」という意味で使用されます。
 
 
 
@@ -51,7 +51,7 @@ composer require --dev phpunit/phpunit:^^12
 この PHP で使用できる PHPUnit のバージョンを調べたところ
  `PHPUnit 12 系`
 を使用できることがわかりました。
-そこで、PHPUnitのバージョンを指定してインストールを試みました。
+そこで、PHPUnitのバージョン範囲を指定してインストールを試みました。
 
 私の場合は、開発フォルダー(ua-check)を MAMP の外において管理したいので、
 
@@ -95,7 +95,7 @@ PowerShell では、コマンドラインで「^」を引数として使用す�
 そこで、コマンドプロンプトで「^」はどのような意味を持つのか調べてみました。
 コマンドプロンプトでは、「^」は特殊文字で、次の文字をエスケープするために使用されるということがわかりました。
 
-Composer には以下コマンドが渡されたとかんがえられます。
+Composer には以下コマンドが渡されたと考えられます。
 ```
 composer require --dev phpunit/phpunit:12
 ```
@@ -105,7 +105,8 @@ Composer は 12 系の最新バージョンを指定指定しているのでは�
 12.0.0 をインストールしようとします。
 
 もう一方で、
-- Root composer.json requires phpunit/phpunit 12 (exact version match: 12, 12.0, 12.0.0 or 12.0.0.0), found phpunit/phpunit[12.0.0] but these were not loaded, because they are affected by security advisories
+```
+Root composer.json requires phpunit/phpunit 12 (exact version match: 12, 12.0, 12.0.0 or 12.0.0.0), found phpunit/phpunit[12.0.0] but these were not loaded, because they are affected by security advisories
 ```
 12.0.0 にはセキュリティー勧告がされていて、
 この環境の Composer 設定では、セキュリティ勧告の対象であるため PHPUnit 12.0.0 は依存関係の解決対象から除外されました。
@@ -174,6 +175,6 @@ OK (1 test, 1 assertion)
 phpUnit のインストールと、簡単なテストコードの実行ができました。
 
 ## まとめ
-- コマンドプロンプトでは、「^」は特殊文字です。
-- 一方で、Composer では、「^」は「バージョンの範囲を指定してインストールする」という意味で使用されます。
-- コマンドプロンプトにおいて Composer で「^」を使用する場合は、引数を「\"」で囲むか、「^」を「^^」に置き換える必要があります。
+- コマンドプロンプトでは、「^」は特殊文字です
+- 一方で、Composer では、「^」は「バージョンの範囲を指定してインストールする」という意味で使用されます
+- コマンドプロンプトにおいて Composer で「^」を使用する場合は、引数を「\"」で囲むか、「^」を「^^」に置き換える必要があります
