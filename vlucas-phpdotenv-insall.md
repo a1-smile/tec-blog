@@ -13,6 +13,7 @@ PHP では、
 PHP の環境変数として利用できるようにするライブラリです。
 
 ### 設定手順の概要
+#### ファイルの設定
 プロジェクト ディレクトリのルートに `.gitignore` ファイルを作成。
 .gitignore に
 ```gitignore
@@ -65,7 +66,38 @@ DB_NAME=your_database_name
 DB_USER=your_user_name
 DB_PASSWORD=
 ```
+#### php での環境変数の読み込み
+`.env` ファイルを読み込むには、`vlucas/phpdotenv` を使用します。
+または、
+phpunit では bootstrap.php で環境変数を読み込むのが一般的です。
 
+
+`vlucas/phpdotenv` のインストール方法は、
+以下のリンクを参照してください。
+
+[vlucas/phpdotenv - Packagist](https://packagist.org/packages/vlucas/phpdotenv)
+
+環境変数を読み込むファイルを作成します。
+例えば、
+プロジェクトのルートディレクトリに、
+`.env.php` ファイルを作成します。
+または、
+テスト用なら tests ディレクトリに、
+bootstrap.php を作成。
+
+project-root/
+  ├─ .env
+  ├─ .env.example
+  └─ .env.php
+  ├─ phpunit.xml
+  ├─ src/
+  │  └─ index.php
+  └─ vendor/
+  └─ tests/
+     └─ bootstrap.php
+`index.php` などで、
+
+環境変数を読み込む関数を定義しておきます。
 
 ## 結論
 PHP のバージョンが
