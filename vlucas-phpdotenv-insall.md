@@ -69,7 +69,7 @@ DB_PASSWORD=
 #### php での環境変数の読み込み
 `.env` ファイルを読み込むには、`vlucas/phpdotenv` を使用します。
 または、
-phpunit では bootstrap.php で環境変数を読み込むのが一般的です。
+phpunit では phpunit.xml で環境変数を読み込むのが一般的です。
 
 
 `vlucas/phpdotenv` のインストール方法は、
@@ -86,6 +86,7 @@ phpunit では bootstrap.php で環境変数を読み込むのが一般的です
 bootstrap.php を作成。
 
 project-root/
+  ├─ .gitignore
   ├─ .env
   ├─ .env.example
   └─ .env.php
