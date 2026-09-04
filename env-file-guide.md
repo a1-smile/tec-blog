@@ -22,7 +22,7 @@ git の追跡対象になってしまいます。
 `git status` で .env が表示されているばあいは、
 
 まづ、.gitignore に .env を追加して、
-いかのコマンドを実行します。
+以下のコマンドを実行します。
 ```cmd
 git rm --cached .env
 ```
@@ -80,6 +80,7 @@ DB_PASSWORD=
 
 ## PHP での環境変数の読み込み方法
 `.env` ファイルを読み込むには、
+ライブラリの
 `vlucas/phpdotenv` を使用します。
 
 `vlucas/phpdotenv` のインストール方法は、
@@ -96,22 +97,49 @@ project-root/
      └─ index.php
      └─ common/
         └─ database.php
+
 環境変数を読み込むファイルを作成。
 例えば、
 プロジェクトのルートディレクトリに、
 `.env.php` ファイルを作成します。
-内容は以下のようになります。
+内容は以下のように記述します。
 ```php
 <?php
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+use Dotenv\Dotenv;
+use Dotenv\Exception\InvalidPathException;
+use Dotenv\Exception\ValidationException;
+use Dotenv\Exception\InvalidFileException;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+
+try {
+    $dotenv->load();
+} catch (InvalidPathException $e) {
+    exit('.env ファイルが見つかりません。環境変数を設定してください。');
+} catch (InvalidFileException $e) {
+    exit('.env ファイルの形式が正しくありません。');
+}
+
+//  必須の設定値を確認する場合は、以下のように記述します。
+try {
+$dotenv->required([
+    'DB_HOST',
+    'DB_NAME',
+    'DB_USER',
+    'DB_PASSWORD',
+    ])->notEmpty();
+} catch (ValidationException $e) {
+    error_log($e->getMessage());
+    exit('必須の環境変数が設定されていません: ');
+}
 ```
 
 > ここで、
-`use Dotenv\Dotenv\;`
+`use Dotenv\Dotenv;`
 と記述した場合は、
 その後は、
 ```php
+<?php
 use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -125,6 +153,7 @@ DB に接続する
 database.php などのファイルで、
 環境変数を使用して DB に接続することができるように、
 ```php
+<?php
 $dbHost = $_ENV['DB_HOST'];
 $dbName = $_ENV['DB_NAME'];
 $dbUser = $_ENV['DB_USER'];
@@ -155,4 +184,53 @@ require_once __DIR__ . '/common/database.php';
 ```
 
 これで、$pdo（PDO オブジェクト）を利用することができます。
+
+## テスト環境での `.env` ファイルの利用方法
+PHPUnit を使用して、
+テスト用の DB を設定して
+テストをしたい場合の説明です。
+
+ディレクトリ構成は以下のようになります。
+
+project-root/
+  ├─ .gitignore
+  ├─ .env
+  ├─ .env.example
+  └─ .env.php
+  └─ src/
+  |   └─ index.php
+  |   └─ common/
+  |      └─ database.php
+  |
+  |- phpunit.xml
+  |
+  |- vendor/
+  |
+  └─ tests/
+     └─ bootstrap.php
+     └─ .env
+     └─ .env.example
+
+
+.gitignore に以下を追加します。
+```gitignore
+ .env
+ tests/.env
+ ```
+
+tests/.env にテスト用の環境変数を記述します。例えば、以下のように記述します。
+```env
+DB_HOST=localhost
+DB_NAME=test_database
+DB_USER=test_user
+DB_PASSWORD=test_password
+```
+
+tests/.env.example には、テスト用の環境変数の例を記述します。例えば、以下のように記述します。
+```env
+DB_HOST=localhost
+DB_NAME=test_database
+DB_USER=test_user
+DB_PASSWORD=
+```
 
