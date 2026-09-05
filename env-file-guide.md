@@ -211,14 +211,26 @@ project-root/
      └─ .env
      └─ .env.example
 
+処理の流れとしては、テスト実行時に
+1 
+`tests/bootstrap.php` で
+`tests/.env` を読み込む
+2  
+`phpunit.xml` で
+`bootstrap` 属性で
+`tests/bootstrap.php` を指定
 
-.gitignore に以下を追加します。
+詳しい設定方法は、以下になります。
+
+.gitignore に `tests/.env` を追加します。
 ```gitignore
  .env
  tests/.env
  ```
 
-tests/.env にテスト用の環境変数を記述します。例えば、以下のように記述します。
+tests/.env にテスト用の DB への
+接続情報を記述します。
+例えば、以下のように記入。
 ```env
 DB_HOST=localhost
 DB_NAME=test_database
@@ -226,7 +238,10 @@ DB_USER=test_user
 DB_PASSWORD=test_password
 ```
 
-tests/.env.example には、テスト用の環境変数の例を記述します。例えば、以下のように記述します。
+tests/.env.example には、
+テスト用の DB 接続情報の例を記述します。
+パスワードは空欄にしておきます。
+例えば、以下のように記載。
 ```env
 DB_HOST=localhost
 DB_NAME=test_database
@@ -234,3 +249,35 @@ DB_USER=test_user
 DB_PASSWORD=
 ```
 
+phpunit.xml で `bootstrap` 属性に
+`tests/bootstrap.php` を指定します。
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php" colors="true">
+  <testsuites>
+    <testsuite name="App Test Suite">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
+```
+
+tests/bootstrap.php では、
+以下のように記述して `tests/.env` を読み込みます。
+```php
+<?php
+use Dotenv\Dotenv;
+use Dotenv\Exception\InvalidFileException;
+use Dotenv\Exception\InvalidPathException;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+try {
+    $dotenv->load();
+} catch (InvalidPathException $e) {
+    //  テスト開始前に停止
+    exit('tests/.env ファイルが見つかりません。環境変数を設定してください。');
+} catch (InvalidFileException $e) {
+    //  テスト開始前に停止
+    exit('tests/.env ファイルの形式が正しくありません。');
+}
+```
