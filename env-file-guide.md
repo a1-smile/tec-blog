@@ -94,17 +94,26 @@ project-root/
   ├─ .env.example
   └─ .env.php
   └─ src/
-     └─ index.php
-     └─ common/
-        └─ database.php
+  |   └─ index.php
+  |   └─ common/
+  |      └─ database.php
+  └─ vendor/
+  |   └─ autoload.php
 
 環境変数を読み込むファイルを作成。
 例えば、
 プロジェクトのルートディレクトリに、
 `.env.php` ファイルを作成します。
 内容は以下のように記述します。
+インストールしたライブラリのクラスを使用するために、
+`/vendor/autoload.php` を読み込む必要があります。
+
 ```php
-<?php
+<?php   
+// 同じ階層の vendor にある Composer の /vendor/autoload.php を読み込む
+require_once __DIR__ . '/vendor/autoload.php';
+// インストールしたライブラリのクラスを使用する準備
+
 use Dotenv\Dotenv;
 use Dotenv\Exception\InvalidPathException;
 use Dotenv\Exception\ValidationException;
@@ -190,7 +199,7 @@ PHPUnit を使用して、
 テスト用の DB を設定して
 テストをしたい場合の説明です。
 
-ディレクトリ構成は以下のようになります。
+ディレクトリ、ファイル構成は以下のようになります。
 
 project-root/
   ├─ .gitignore
@@ -217,7 +226,7 @@ project-root/
 `tests/.env` を読み込む
 2  
 `phpunit.xml` で
-`bootstrap` 属性で
+`bootstrap` 属性によって
 `tests/bootstrap.php` を指定
 
 詳しい設定方法は、以下になります。
@@ -239,7 +248,7 @@ DB_PASSWORD=test_password
 ```
 
 tests/.env.example には、
-テスト用の DB 接続情報の例を記述します。
+テスト用の DB 接続情報の例を記述。
 パスワードは空欄にしておきます。
 例えば、以下のように記載。
 ```env
@@ -264,8 +273,13 @@ phpunit.xml で `bootstrap` 属性に
 
 tests/bootstrap.php では、
 以下のように記述して `tests/.env` を読み込みます。
+Dotenv を使う前に Composer の autoloader が必要です。
 ```php
 <?php
+// インストールしたライブラリのクラスを使用する準備
+//  一階層上のディレクトリに上がって Composer の autoloader を読み込む
+require_once __DIR__ . '/../vendor/autoload.php';
+
 use Dotenv\Dotenv;
 use Dotenv\Exception\InvalidFileException;
 use Dotenv\Exception\InvalidPathException;
@@ -281,3 +295,8 @@ try {
     exit('tests/.env ファイルの形式が正しくありません。');
 }
 ```
+
+> phpunit.xml に DB 接続情報を書く方法もあります。
+しかし、セキュリティや管理の観点から、
+DB 接続情報は `tests/.env` ファイルに記述する方法が
+推奨されます。
