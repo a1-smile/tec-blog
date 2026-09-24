@@ -151,5 +151,122 @@ localhost
 や
 
 .env ファイルが正しく設定されているか、などを確認していきます。
+### ファイル構成を確認する
+ファイル、ディレクトリ構成が、以下のようになっていることを確認します。
+```
+project-name\
+│
+├─ .env
+├─ composer.json
+├─ composer.lock
+├─ test-env.php
+│
+└─ vendor\
+    ├─ autoload.php
+    └─ vlucas\
+        └─ phpdotenv\
+```
+`project-name` ディレクトリ直下に
+
+`vendor` ディレクトリがある。
+
+`vendor` 直下に
+
+`autoload.php` ファイルと
+`vlucas` ディレクトリがある。
+
+`vlucas` ディレクトリ直下に
+
+`phpdotenv` が存在することを確認します。
+
+### autoload.php をコマンドプロンプトで確認
+
+さらに、コマンドプロンプトで
+```
+cd 「project-name のパス」
+```
+とプロジェクト ディレクトリに移動して、
+```
+dir vendor\autoload.php
+```
+とすると、
+```
+ ドライブ C のボリューム ラベルは Windows です
+ ボリューム シリアル番号は B690-2094 です
+
+ C:\dev\ua-check\vendor のディレクトリ
+
+2026/08/10  05:38               748 autoload.php
+               1 個のファイル                 748 バイト
+               0 個のディレクトリ  99,032,584,192 バイトの空き領域
+
+C:\dev\ua-check>dir vendor\autoload.php
+ ドライブ C のボリューム ラベルは Windows です
+ ボリューム シリアル番号は B690-2094 です
+
+ project-name のディレクトリ
+
+2026/08/10  05:38               748 autoload.php
+               1 個のファイル                 748 バイト
+               0 個のディレクトリ  99,032,584,192 バイトの空き領域
+
+```
+のように表示されるかを確認します。
+
+### phpdotenv が Composer に正しくインストールされているか確認
+project-name ディレクトリ直下で
+```
+composer show vlucas/phpdotenv
+```
+と打ち込むと、
+```
+name     : vlucas/phpdotenv
+descrip. : Loads environment variables from `.env` to `$_ENV` and `$_SERVER` automagically, and optionally to `getenv()`.
+keywords : dotenv, env, environment
+versions : * v5.7.0
+released : 2026-08-24, 4 weeks ago
+type     : library
+license  : BSD 3-Clause "New" or "Revised" License (BSD-3-Clause) (OSI approved) https://spdx.org/licenses/BSD-3-Clause.html#licenseText
+homepage : 
+source   : [git] https://github.com/vlucas/phpdotenv.git 301c07936b16d88628b126b01d082ba153cf4c40
+dist     : [zip] https://api.github.com/repos/vlucas/phpdotenv/zipball/301c07936b16d88628b126b01d082ba153cf4c40 301c07936b16d88628b126b01d082ba153cf4c40
+path     : project-name\vendor\vlucas\phpdotenv
+names    : vlucas/phpdotenv
+
+support
+issues : https://github.com/vlucas/phpdotenv/issues
+source : https://github.com/vlucas/phpdotenv/tree/v5.7.0
+
+autoload
+psr-4
+Dotenv\ => src/
+
+requires
+ext-pcre *
+graham-campbell/result-type ^1.2
+php ^7.2.5 || ^8.0
+phpoption/phpoption ^1.10
+symfony/polyfill-ctype ^1.26
+symfony/polyfill-mbstring ^1.26
+symfony/polyfill-php80 ^1.26
+
+requires (dev)
+bamarni/composer-bin-plugin ^1.8.2
+ext-filter *
+phpunit/phpunit ^8.5.34 || ^9.6.13 || ^10.4.2
+
+suggests
+ext-filter Required to use the boolean validator.
+```
+などと表示されれば、`vlucas/phpdotenv` は正しくインストールされています。
+
+### test-env.php と vendor の相対的な位置関係を確認
+`test-env.php` で
+```
+require_once __DIR__ . '/vendor/autoload.php';
+```
+にように `autoload.php` を読み込んでいるので、
+
+`require_once __DIR__ .` の後に実行ファイルがある場所から `vendor` ディレクトリへの相対パスを記入している必要があります。
 
 ### composer.json を確認
