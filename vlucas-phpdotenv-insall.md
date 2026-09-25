@@ -194,21 +194,11 @@ dir vendor\autoload.php
  ドライブ C のボリューム ラベルは Windows です
  ボリューム シリアル番号は B690-2094 です
 
- C:\dev\ua-check\vendor のディレクトリ
+ project-name\vendor のディレクトリ
 
 2026/08/10  05:38               748 autoload.php
                1 個のファイル                 748 バイト
-               0 個のディレクトリ  99,032,584,192 バイトの空き領域
-
-C:\dev\ua-check>dir vendor\autoload.php
- ドライブ C のボリューム ラベルは Windows です
- ボリューム シリアル番号は B690-2094 です
-
- project-name のディレクトリ
-
-2026/08/10  05:38               748 autoload.php
-               1 個のファイル                 748 バイト
-               0 個のディレクトリ  99,032,584,192 バイトの空き領域
+               0 個のディレクトリ  98,991,210,496 バイトの空き領域
 
 ```
 のように表示されるかを確認します。
@@ -259,14 +249,119 @@ suggests
 ext-filter Required to use the boolean validator.
 ```
 などと表示されれば、`vlucas/phpdotenv` は正しくインストールされています。
-
+### composer.json を確認
+`composer.json` に
+```json
+"require": {
+        "vlucas/phpdotenv": "^5.7"
+    }
+```
+のように記述されているかを確認します。
 ### test-env.php と vendor の相対的な位置関係を確認
-`test-env.php` で
+`test-env.php` での記述で
 ```
 require_once __DIR__ . '/vendor/autoload.php';
 ```
 にように `autoload.php` を読み込んでいるので、
 
-`require_once __DIR__ .` の後に実行ファイルがある場所から `vendor` ディレクトリへの相対パスを記入している必要があります。
+`require_once __DIR__ .` の後に実行ファイルがある場所から `vendor/autoload.php` への相対パスを記入している必要があります。
 
-### composer.json を確認
+（上の記述は、同じ階層にある場合の書き方です。）
+
+### use の使い方を確認
+`test-env.php` で
+```
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+```
+と書くのは、間違いです。
+```
+use Dotenv\Dotenv;
+```
+と書いたあとは、
+`Dotenv` と記述すれば、`Dotenv\Dotenv` と認識されます。
+
+上の書き方ですと、PHP が `Dotenv\Dotenv\Dotenv` をさがしてしまい、
+```
+C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Error: Class "Dotenv\Dotenv\Dotenv" not found in C:\dev\ua-check\test-env.php:6 Stack trace: #0 {main} thrown in C:\dev\ua-check\test-env.php on line 6
+```
+のように、
+
+`Class "Dotenv\Dotenv\Dotenv" not found`
+
+という意味のエラーが発生します。
+
+### "Dotenv\Dotenv" not found というエラーなら
+"Dotenv\Dotenv" not found というエラーメッセージが表示された場合は、
+
+`autoload.php`
+
+が正しく実行されていない可能性が高いです。
+
+その場合は、Composerのオートローダーを再生成してみます。
+コマンドプロンプトで、
+```cmd
+composer dump-autoload
+```
+を実行します。
+
+### .env ファイルが正しく設定されているかを確認
+以下のようなエラーメッセージが表示される場合は、
+
+`.env` を読みこめていません。
+```
+C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Dotenv\Exception\InvalidPathException: Unable to read any of the environment file(s) at [C:\dev\ua-check\.env]. in project-name\vendor\vlucas\phpdotenv\src\Store\FileStore.php:68 Stack trace: #0 project-name\vendor\vlucas\phpdotenv\src\Dotenv.php(222): Dotenv\Store\FileStore->read() #1 project-name\test-env.php(7): Dotenv\Dotenv->load() #2 {main} thrown in project-name\vendor\vlucas\phpdotenv\src\Store\FileStore.php on line 68 project-name>php test-env.php
+```
+このメッセージで重要な部分は、
+
+`Unable to read any of the environment file(s) at [project-name\.env].`
+
+です。
+
+対策としては、まずコマンドプロンプトで、プロジェクトディレクトリ直下に移動して、以下を実行します。
+```cmd
+dir /a .env
+```
+`.env` が表示されない場合は、
+- `.env` を設定していない
+- `.env` を設定する場所を間違えている
+- `.env` に .txt などの拡張子がついている
+という可能性があります。
+
+解決策は、
+
+`test-env.php` と同じ階層に `.env` を作成する。
+
+`.env` に拡張子 `.txt` などがついている場合はとりのぞく。
+
+意図せずに、`.txt` という拡張子が付いてしまうことがあります。
+
+例えば、
+
+Windowsではメモ帳などで、
+
+`.env`
+
+と保存したつもりでも、
+
+`.env.txt`
+
+になっていることがあります。
+
+また、VsCode でテキストファイルとして認識させようとして、 `.txt` と拡張子をつけてしまう可能性もあります。
+
+確認するには、コマンドプロンプトで、プロジェクトディレクトリ直下で
+```cmd
+dir /a
+```
+を実行して、
+```cmd
+.env.txt
+```
+が表示されれば、拡張子 `.txt` がついていることが原因です。
+
+
+
+
+
