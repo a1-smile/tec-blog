@@ -27,17 +27,36 @@ PHP の環境変数として利用できるようにするライブラリです�
 .env ファイルの設定方法と使用法については、
 
 以下の記事を参考にしてください。
+
 [.env のファイルの設定と使用方法](<https://qiita.com/a1-smile/items/eca7ce8aa9cccfb90ed9>)
 
 ### PHP のバージョン確認
+`vlucas/phpdotenv` をインストールするには、
+
 プロジェクトディレクトリで動く
 PHP のバージョンが
-PHP:^7.2.5 || ^8.0
+
+`vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認する必要があります。
+
+以下のリンクから確認できます。
+[The PHP Package Repository](https://packagist.org/packages/vlucas/phpdotenv?utm_source=chatgpt.com)
+
+この記事を書いた時点では
+
+Requires
+
+php: ^7.2.5 || ^8.0
+ext-pcre: *
+graham-campbell/result-type: ^1.2
+phpoption/phpoption: ^1.10
+symfony/polyfill-ctype: ^1.26
+symfony/polyfill-mbstring: ^1.26
+symfony/polyfill-php80: ^1.26
 
 つまり、
 
 7.2.5 以上での7.x 系、
-または 8.x 系を使用していることが必要。
+または 8.x 系を使用していることが必要とされています。
 
 ### Composer を確認する
 プロジェクトディレクトリで Composer が動くかを確認。
@@ -49,12 +68,12 @@ Composer で vlucas/phpdotenv をインストールするコマンドを実行�
 vlucas/phpdotenv で、環境変数を読み込めるかを確認。
 
 
-## インストール
+## 具体的なインストール手順
 ### vlucas/phpdotenv を使用するディレクトリまで移動
 コマンドプロンプトを使用して、
 `cd` コマンドでプロジェクトのルートディレクトリに移動します。
 ```cmd
-cd C:¥dev¥project-name
+cd 「project-nameへのパス」
 ```
 
 ### PHP のバージョン確認
@@ -62,7 +81,12 @@ cd C:¥dev¥project-name
 ```cmd
 php -v
 ```
-ここで、次のように PHP のバージョンが表示されれば問題ありません。
+ここで、次のように
+
+PHP:^7.2.5 || ^8.0
+
+の範囲の
+PHP のバージョンが表示されれば問題ありません。
 ```
 PHP 8.3.1 (cli) (built: Jan 16 2024 11:57:11) (ZTS Visual C++ 2019 x64)
 Copyright (c) The PHP Group
@@ -89,9 +113,11 @@ composer require vlucas/phpdotenv
 ```
 を実行します。
 
-## インストール確認
+## インストールと動作の確認
 
-プロジェクトのルートディレクトリに設定した `.env` ファイルに、以下のような環境変数を定義します。
+プロジェクトのルートディレクトリに `.env` ファイルを設定。
+
+以下のような環境変数を定義します。
 
 ```env
 DB_HOST=localhost
@@ -102,14 +128,14 @@ DB_PASSWORD=root
 
 プロジェクトのルートディレクトリに
 
-`test-dotenv.php` というファイルを作成。
+`test-env.php` というファイルを作成。
 
 環境変数を読み込み、出力する設定を以下のように記述します。
 
 ```php
 //  Composer がインストールしたクラスを
 //  使えるようにする記述
-require 'vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 //  Dotenv\Dotenv は Dotenv という名前空間
 //  にある Dotenv というクラスという意味。
@@ -117,7 +143,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 try {
     $dotenv->load();
 } catch (Dotenv\Exception\InvalidPathException $e) {
-exit('.env ファイルが見つかりません')
+exit('.env ファイルが見つかりません');
 } catch (Dotenv\Exception\InvalidFileException $e) {
     exit('.env ファイルの形式が正しくありません。');
 }
@@ -125,7 +151,7 @@ exit('.env ファイルが見つかりません')
 echo $_ENV['DB_HOST']. "\n";
 ``` 
 
-コマンドプロンプトで、`test-env.php` を実行します。
+コマンドプロンプトで、test-env.php を実行します。
 
 まず、どこのディレクトリにいるか確認
 ```cmd
@@ -133,9 +159,9 @@ cd
 ```
 プロジェクトディレクトリにいない場合は移動
 ```cmd
-cd C:\dev\project-name
+cd 「project-nameへのパス」
 ```
-`test-env.php` を実行
+test-env.php を実行
 ```cmd
 php test-env.php
 ```
@@ -167,6 +193,8 @@ project-name\
         └─ phpdotenv\
 ```
 `project-name` ディレクトリ直下に
+
+`.env` と
 
 `vendor` ディレクトリがある。
 
@@ -253,23 +281,28 @@ ext-filter Required to use the boolean validator.
 `composer.json` に
 ```json
 "require": {
-        "vlucas/phpdotenv": "^5.7"
+        "vlucas/phpdotenv": "^x.x"
     }
 ```
 のように記述されているかを確認します。
-### test-env.php と vendor の相対的な位置関係を確認
-`test-env.php` での記述で
-```
+`"^x.x"` はインストール時点での最新バージョンを表します。
+## test-env.php と vendor の相対的な位置関係を確認
+test-env.php での記述で
+```php
 require_once __DIR__ . '/vendor/autoload.php';
 ```
 にように `autoload.php` を読み込んでいるので、
 
-`require_once __DIR__ .` の後に実行ファイルがある場所から `vendor/autoload.php` への相対パスを記入している必要があります。
+`require_once __DIR__ .` の後に
 
-（上の記述は、同じ階層にある場合の書き方です。）
+実行ファイルがある場所から `vendor/autoload.php` への相対パス
+
+を記入している必要があります。
+
+（上の記述は、`vender`ディレクトリが同じ階層にある場合の書き方です。）
 
 ### use の使い方を確認
-`test-env.php` で
+test-env.php で
 ```
 use Dotenv\Dotenv;
 
@@ -295,9 +328,23 @@ C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Error: Class "Dotenv\
 ### "Dotenv\Dotenv" not found というエラーなら
 "Dotenv\Dotenv" not found というエラーメッセージが表示された場合は、
 
+vlucas/phpdotenv が未インストール、
+
+vendor が存在しない
+
+test-env.php での記述で
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+```
+の部分で込むパスが違う
+
+という場合があります。
+
+また、
+
 `autoload.php`
 
-が正しく実行されていない可能性が高いです。
+が正しく実行されていない可能性も高いです。
 
 その場合は、Composerのオートローダーを再生成してみます。
 コマンドプロンプトで、
@@ -331,7 +378,7 @@ dir /a .env
 
 解決策は、
 
-`test-env.php` と同じ階層に `.env` を作成する。
+test-env.php と同じ階層に `.env` を作成する。
 
 `.env` に拡張子 `.txt` などがついている場合はとりのぞく。
 
@@ -360,6 +407,50 @@ dir /a
 .env.txt
 ```
 が表示されれば、拡張子 `.txt` がついていることが原因です。
+
+このようなミスを防ぐために、 Windows では、
+
+エクスプローラーでプロジェクトフォルダーに移動して、
+
+表示
+
+⬇️
+
+表示
+
+⬇️
+
+ファイル名拡張子
+
+で拡張子を表示する設定にしておきます。
+
+## まとめ
+`vlucas/phpdotenv` をインストールする手順は
+
+1. プロジェクトのディレクトリへ移動
+```cmd
+cd 「project-nameへのパス」
+```
+2. PHPのバージョンを確認
+```cmd
+php -v
+```
+3. Composerが正常に動くことを確認
+```cmd
+composer --version
+```
+4. インストールコマンドを実行
+```cmd
+composer require vlucas/phpdotenv
+```
+5. インストールと動作の確認
+
+ファイル構成を確認して、
+
+実際に環境変数を読み込めるかを確認します。
+
+
+
 
 
 
