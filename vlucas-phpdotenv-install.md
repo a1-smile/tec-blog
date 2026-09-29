@@ -9,9 +9,9 @@
 PHP では、
 
 環境ごとに異なる設定情報
+を管理する必要があります。
 
 （データベース接続情報や API キーなど）
-を管理する必要があります。
 
 これらの情報をコードに直接記述すると、
 セキュリティリスクが高まるだけでなく、
@@ -22,27 +22,109 @@ PHP では、
 `vlucas/phpdotenv` は、この `.env` ファイルを読み込み、
 PHP の環境変数として利用できるようにするライブラリです。
 
-## 設定手順の概要
-### .env のファイルの設定
+## 準備 .env のファイルの設定
 .env ファイルの設定方法と使用法については、
 
 以下の記事を参考にしてください。
 
 [.env のファイルの設定と使用方法](<https://qiita.com/a1-smile/items/eca7ce8aa9cccfb90ed9>)
 
+ ⚠️**注意**
+ .env は git 管理しないよに気を付けます。
+```text
+project-root/
+  ├─ .gitignore
+  ├─ .env
+  ├─ .env.example
+```
+
+プロジェクト ディレクトリのルートに `.gitignore` ファイルを作成。
+
+.gitignore に
+```gitignore
+.env   
+```
+と記述します。
+
+`.env` ファイルには機密情報が含まれるため、
+
+この作業の前に .env ファイルを作ってコミットをしないように注意します。
+
+git の追跡対象になってしまいます。
+
+すでに、
+`git status` で .env が表示されている場合は、
+
+まず、.gitignore に .env を追加して、
+以下のコマンドを実行します。
+```cmd
+git rm --cached .env
+```
+そして、
+```cmd
+git commit -m "Remove .env from tracking"
+```
+として、git の追跡対象から外します。
+
+>.gitignore は
+>「まだ追跡されていない .env」だけを無視します。
+>
+>すでにコミット済みの機密情報は、
+>
+>git rm --cached .env で追跡解除しても
+>
+>Git の過去履歴には残ります。
+>公開リポジトリなどへ push 済みなら、
+>DB パスワード等は変更（ローテーション）
+>する必要があります。
+
+また、
+ サンプルとして、
+ `.env.example` ファイルも作成します
+
+ .env ファイルの内容は、
+例えば PDO を使用したデータベース接続情報なら、以下のように記述します。
+```env
+DB_HOST=localhost
+DB_NAME=your_database_name
+DB_USER=your_user_name
+DB_PASSWORD=your_password
+```
+
+サンプルとしての、
+`.env.example` ファイルには
+
+必要な環境変数の名前と記入例を記述し、
+
+パスワードは空欄にしておきます。
+
+こちらは、git の追跡対象に含めます。
+
+他の環境で、コピーして書き換えることにより、
+
+環境に合わせた `.env` ファイルを作成することができます。
+
+`.env.example` ファイルの内容は以下のようになります。
+```env
+DB_HOST=localhost
+DB_NAME=your_database_name
+DB_USER=your_user_name
+DB_PASSWORD=
+```
+
+## 設定手順の概要
 ### PHP のバージョン確認
-`vlucas/phpdotenv` をインストールするには、
+`vlucas/phpdotenv` をインストールするには PHP のバージョンを確認が必要。
 
-プロジェクトディレクトリで動く
-PHP のバージョンが
+プロジェクトディレクトリで動くPHP のバージョンが
 
-`vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認する必要があります。
+`vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認。
 
 以下のリンクから確認できます。
 [The PHP Package Repository](https://packagist.org/packages/vlucas/phpdotenv?utm_source=chatgpt.com)
 
 この記事を書いた時点では
-
+```
 Requires
 
 php: ^7.2.5 || ^8.0
@@ -52,7 +134,7 @@ phpoption/phpoption: ^1.10
 symfony/polyfill-ctype: ^1.26
 symfony/polyfill-mbstring: ^1.26
 symfony/polyfill-php80: ^1.26
-
+```
 つまり、
 
 7.2.5 以上での7.x 系、
@@ -146,6 +228,19 @@ try {
 exit('.env ファイルが見つかりません');
 } catch (Dotenv\Exception\InvalidFileException $e) {
     exit('.env ファイルの形式が正しくありません。');
+}
+
+//  必須の設定値を確認する場合は、以下のように記述します。
+try {
+$dotenv->required([
+    'DB_HOST',
+    'DB_NAME',
+    'DB_USER',
+    'DB_PASSWORD',
+    ])->notEmpty();
+} catch (Dotenv\Exception\ValidationException $e) {
+    error_log($e->getMessage());
+    exit('必須の環境変数が設定されていません: ');
 }
 
 echo $_ENV['DB_HOST']. "\n";
@@ -244,39 +339,10 @@ keywords : dotenv, env, environment
 versions : * v5.7.0
 released : 2026-08-24, 4 weeks ago
 type     : library
-license  : BSD 3-Clause "New" or "Revised" License (BSD-3-Clause) (OSI approved) https://spdx.org/licenses/BSD-3-Clause.html#licenseText
-homepage : 
-source   : [git] https://github.com/vlucas/phpdotenv.git 301c07936b16d88628b126b01d082ba153cf4c40
-dist     : [zip] https://api.github.com/repos/vlucas/phpdotenv/zipball/301c07936b16d88628b126b01d082ba153cf4c40 301c07936b16d88628b126b01d082ba153cf4c40
-path     : project-name\vendor\vlucas\phpdotenv
-names    : vlucas/phpdotenv
 
-support
-issues : https://github.com/vlucas/phpdotenv/issues
-source : https://github.com/vlucas/phpdotenv/tree/v5.7.0
-
-autoload
-psr-4
-Dotenv\ => src/
-
-requires
-ext-pcre *
-graham-campbell/result-type ^1.2
-php ^7.2.5 || ^8.0
-phpoption/phpoption ^1.10
-symfony/polyfill-ctype ^1.26
-symfony/polyfill-mbstring ^1.26
-symfony/polyfill-php80 ^1.26
-
-requires (dev)
-bamarni/composer-bin-plugin ^1.8.2
-ext-filter *
-phpunit/phpunit ^8.5.34 || ^9.6.13 || ^10.4.2
-
-suggests
-ext-filter Required to use the boolean validator.
 ```
 などと表示されれば、`vlucas/phpdotenv` は正しくインストールされています。
+（ 実行結果は環境によってことなります。）
 ### composer.json を確認
 `composer.json` に
 ```json
@@ -285,21 +351,30 @@ ext-filter Required to use the boolean validator.
     }
 ```
 のように記述されているかを確認します。
-`"^x.x"` はインストール時点での最新バージョンを表します。
+x.x はプレースホルダーで、
+たとえば、私の環境ですと、
+```json
+ "require": {
+        "vlucas/phpdotenv": "^5.7"
+    }
+```
+となっています。
 ## test-env.php と vendor の相対的な位置関係を確認
 test-env.php での記述で
 ```php
 require_once __DIR__ . '/vendor/autoload.php';
 ```
-にように `autoload.php` を読み込んでいるので、
+のように `autoload.php` を読み込んでいるので、
 
 `require_once __DIR__ .` の後に
 
-実行ファイルがある場所から `vendor/autoload.php` への相対パス
+コードが書いてあるファイルのディレクトリを基準にして、
 
-を記入している必要があります。
+ `vendor/autoload.php` 
+ 
+ へのパスを記入している必要があります。
 
-（上の記述は、`vender`ディレクトリが同じ階層にある場合の書き方です。）
+（上の記述は、`vendor`ディレクトリが同じ階層にある場合の書き方です。）
 
 ### use の使い方を確認
 test-env.php で
@@ -325,23 +400,53 @@ C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Error: Class "Dotenv\
 
 という意味のエラーが発生します。
 
-### "Dotenv\Dotenv" not found というエラーなら
+### "Dotenv\Dotenv" not found というエラーの場合 1
 "Dotenv\Dotenv" not found というエラーメッセージが表示された場合は、
 
 vlucas/phpdotenv が未インストール、
 
 vendor が存在しない
 
+という可能性があります。
+
+```
+project-name\
+│
+├─ .env
+├─ composer.json
+├─ composer.lock
+├─ test-env.php
+```
+
+を確認して、
+
+`composer.lock` 内を検索して、
+```
+ "name": "vlucas/phpdotenv",
+```
+という記述があるばあいは、
+
+プロジェクトフォルダに移動して、コマンドプロンプトで、
+```cmd
+composer install
+```
+とすれば、`vlucas/phpdotenv` を再インストールできます。
+
+### "Dotenv\Dotenv" not found というエラーの場合 2
+
+「test-env.php と vendor の相対的な位置関係を確認」
+
+という項目ですでに説明しましたが、
+
 test-env.php での記述で
 ```php
 require_once __DIR__ . '/vendor/autoload.php';
 ```
-の部分で込むパスが違う
+の部分で読み込むパスが違う
 
 という場合があります。
 
-また、
-
+### "Dotenv\Dotenv" not found というエラーの場合 3
 `autoload.php`
 
 が正しく実行されていない可能性も高いです。
@@ -396,7 +501,7 @@ Windowsではメモ帳などで、
 
 になっていることがあります。
 
-また、VsCode でテキストファイルとして認識させようとして、 `.txt` と拡張子をつけてしまう可能性もあります。
+また、VsCode でテキストファイルとして認識させようとして、 `.txt` と拡張子をつけてしまうというミスもありえます。
 
 確認するには、コマンドプロンプトで、プロジェクトディレクトリ直下で
 ```cmd
@@ -445,7 +550,7 @@ composer require vlucas/phpdotenv
 ```
 5. インストールと動作の確認
 
-ファイル構成を確認して、
+ファイル構成や、
 
 実際に環境変数を読み込めるかを確認します。
 
