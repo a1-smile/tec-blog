@@ -8,14 +8,13 @@
 ## 背景となる知識
 PHP では、
 
-環境ごとに異なる設定情報
-を管理する必要があります。
+環境ごとに異なる設定情報を管理する必要があります。
 
 （データベース接続情報や API キーなど）
 
 これらの情報をコードに直接記述すると、
 セキュリティリスクが高まるだけでなく、
-環境ごとに設定を変更するのが手間になります。
+環境ごとに設定を変更するのが手間に。
 
 そこで、`.env` ファイルを使用して環境変数を管理する方法が推奨されます。
 
@@ -30,9 +29,9 @@ PHP の環境変数として利用できるようにするライブラリです�
 [.env のファイルの設定と使用方法](<https://qiita.com/a1-smile/items/eca7ce8aa9cccfb90ed9>)
 
  ⚠️**注意**
- .env は git 管理しないよに気を付けます。
+ .env は git 管理しないように気を付けます。
 ```text
-project-root/
+project-name/
   ├─ .gitignore
   ├─ .env
   ├─ .env.example
@@ -42,9 +41,13 @@ project-root/
 
 .gitignore に
 ```gitignore
-.env   
+.env
+/vendor/   
 ```
 と記述します。
+
+( vendor ディレクトリは、通常は git 管理しません。
+composer.lock をコミットしておけば各環境で composer install により同じ依存関係を復元できるためです。composer.json と composer.lock は Git 管理します。)
 
 `.env` ファイルには機密情報が含まれるため、
 
@@ -55,7 +58,37 @@ git の追跡対象になってしまいます。
 すでに、
 `git status` で .env が表示されている場合は、
 
-まず、.gitignore に .env を追加して、
+```cmd
+dir /a .env
+```
+として、
+```cmd
+ドライブ C のボリューム ラベルは Windows です
+ ボリューム シリアル番号は B690-2094 です
+
+ C:\dev\ua-check のディレクトリ
+
+2026/09/04  04:03                66 .env
+               1 個のファイル                  66 バイト
+               0 個のディレクトリ  103,143,612,416 バイトの空き領域
+```
+
+のように、`.env` が表示されることを確認して、
+```cmd
+git ls-files --error-unmatch .env
+```
+を実行、
+```cmd
+error: pathspec '.env' did not match any file(s) known to git
+Did you forget to 'git add'?
+```
+とエラーが表示される場合は未追跡です。
+
+`.gitignore` に `.env` を追加すれば git 管理されません。
+
+一方で、エラー表示されない場合は、git の追跡対象になっているので、
+
+まず、`.gitignore` に `.env` を追加して、
 以下のコマンドを実行します。
 ```cmd
 git rm --cached .env
@@ -104,7 +137,7 @@ DB_PASSWORD=your_password
 
 環境に合わせた `.env` ファイルを作成することができます。
 
-`.env.example` ファイルの内容は以下のようになります。
+`.env.example` ファイルの内容は以下のようにします。
 ```env
 DB_HOST=localhost
 DB_NAME=your_database_name
@@ -121,7 +154,7 @@ DB_PASSWORD=
 `vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認。
 
 以下のリンクから確認できます。
-[The PHP Package Repository](https://packagist.org/packages/vlucas/phpdotenv?utm_source=chatgpt.com)
+[The PHP Package Repository](https://packagist.org/packages/vlucas/phpdotenv?)
 
 この記事を書いた時点では
 ```
@@ -155,7 +188,7 @@ vlucas/phpdotenv で、環境変数を読み込めるかを確認。
 コマンドプロンプトを使用して、
 `cd` コマンドでプロジェクトのルートディレクトリに移動します。
 ```cmd
-cd 「project-nameへのパス」
+cd <project-nameへのパス>
 ```
 
 ### PHP のバージョン確認
@@ -205,7 +238,7 @@ composer require vlucas/phpdotenv
 DB_HOST=localhost
 DB_NAME=student
 DB_USER=root
-DB_PASSWORD=root
+DB_PASSWORD=<パスワードを記入してください>
 ```
 
 プロジェクトのルートディレクトリに
@@ -254,7 +287,7 @@ cd
 ```
 プロジェクトディレクトリにいない場合は移動
 ```cmd
-cd 「project-nameへのパス」
+cd <project-nameへのパス>
 ```
 test-env.php を実行
 ```cmd
@@ -265,6 +298,8 @@ php test-env.php
 localhost
 ```
 と表示されれば、環境変数を読み込めています。
+
+OS／Web サーバー側ですでに同名の環境変数があるとそちらを優先する設定になっているので、注意が必要です。
 
 ## 環境変数を読み込めない場合の確認項目
 環境変数が読み込めない場合は、vlucas/phpdotenv がインストールされているか、
@@ -306,13 +341,13 @@ project-name\
 
 さらに、コマンドプロンプトで
 ```
-cd 「project-name のパス」
+cd <project-name のパス>
 ```
 とプロジェクト ディレクトリに移動して、
 ```
 dir vendor\autoload.php
 ```
-とすると、
+を実行して、
 ```
  ドライブ C のボリューム ラベルは Windows です
  ボリューム シリアル番号は B690-2094 です
@@ -342,7 +377,7 @@ type     : library
 
 ```
 などと表示されれば、`vlucas/phpdotenv` は正しくインストールされています。
-（ 実行結果は環境によってことなります。）
+（ 実行結果は環境によって異なります。）
 ### composer.json を確認
 `composer.json` に
 ```json
@@ -390,7 +425,7 @@ use Dotenv\Dotenv;
 と書いたあとは、
 `Dotenv` と記述すれば、`Dotenv\Dotenv` と認識されます。
 
-上の書き方ですと、PHP が `Dotenv\Dotenv\Dotenv` をさがしてしまい、
+上の書き方ですと、PHP が `Dotenv\Dotenv\Dotenv` を探してしまい、
 ```
 C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Error: Class "Dotenv\Dotenv\Dotenv" not found in C:\dev\ua-check\test-env.php:6 Stack trace: #0 {main} thrown in C:\dev\ua-check\test-env.php on line 6
 ```
@@ -430,7 +465,9 @@ project-name\
 ```cmd
 composer install
 ```
-とすれば、`vlucas/phpdotenv` を再インストールできます。
+とすれば、`vlucas/phpdotenv` をインストールできます。
+
+誤って `vendor` を削除してしまった場合も再インストールされます。
 
 ### "Dotenv\Dotenv" not found というエラーの場合 2
 
@@ -447,11 +484,12 @@ require_once __DIR__ . '/vendor/autoload.php';
 という場合があります。
 
 ### "Dotenv\Dotenv" not found というエラーの場合 3
-`autoload.php`
 
-が正しく実行されていない可能性も高いです。
+`require_once` のパスが正しいかを確認
 
-その場合は、Composerのオートローダーを再生成してみます。
+`composer install` を実行してさらにエラーになるばあいは、
+
+Composerのオートローダーを再生成してみます。
 コマンドプロンプトで、
 ```cmd
 composer dump-autoload
@@ -463,7 +501,7 @@ composer dump-autoload
 
 `.env` を読みこめていません。
 ```
-C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Dotenv\Exception\InvalidPathException: Unable to read any of the environment file(s) at [C:\dev\ua-check\.env]. in project-name\vendor\vlucas\phpdotenv\src\Store\FileStore.php:68 Stack trace: #0 project-name\vendor\vlucas\phpdotenv\src\Dotenv.php(222): Dotenv\Store\FileStore->read() #1 project-name\test-env.php(7): Dotenv\Dotenv->load() #2 {main} thrown in project-name\vendor\vlucas\phpdotenv\src\Store\FileStore.php on line 68 project-name>php test-env.php
+C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Dotenv\Exception\InvalidPathException: Unable to read any of the environment file(s) at [project-name\.env]. in project-name\vendor\vlucas\phpdotenv\src\Store\FileStore.php:68 Stack trace: #0 project-name\vendor\vlucas\phpdotenv\src\Dotenv.php(222): Dotenv\Store\FileStore->read() #1 project-name\test-env.php(7): Dotenv\Dotenv->load() #2 {main} thrown in project-name\vendor\vlucas\phpdotenv\src\Store\FileStore.php on line 68 project-name>php test-env.php
 ```
 このメッセージで重要な部分は、
 
@@ -507,7 +545,7 @@ Windowsではメモ帳などで、
 ```cmd
 dir /a
 ```
-を実行して、
+を実行します。
 ```cmd
 .env.txt
 ```
@@ -534,7 +572,7 @@ dir /a
 
 1. プロジェクトのディレクトリへ移動
 ```cmd
-cd 「project-nameへのパス」
+cd <project-nameへのパス>
 ```
 2. PHPのバージョンを確認
 ```cmd
