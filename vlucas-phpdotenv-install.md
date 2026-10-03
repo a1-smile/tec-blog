@@ -14,7 +14,7 @@ PHP では、
 
 これらの情報をコードに直接記述すると、
 セキュリティリスクが高まるだけでなく、
-環境ごとに設定を変更するのが手間に。
+環境ごとに設定を変更するのが手間。
 
 そこで、`.env` ファイルを使用して環境変数を管理する方法が推奨されます。
 
@@ -27,6 +27,8 @@ PHP の環境変数として利用できるようにするライブラリです�
 以下の記事を参考にしてください。
 
 [.env のファイルの設定と使用方法](<https://qiita.com/a1-smile/items/eca7ce8aa9cccfb90ed9>)
+
+重要な部分を以下で説明していきます。
 
  ⚠️**注意**
  .env は git 管理しないように気を付けます。
@@ -47,13 +49,13 @@ project-name/
 と記述します。
 
 ( vendor ディレクトリは、通常は git 管理しません。
-composer.lock をコミットしておけば各環境で composer install により同じ依存関係を復元できるためです。composer.json と composer.lock は Git 管理します。)
+composer.lock をコミットしておけば各環境で `composer install` により同じ依存関係を復元できるためです。`composer.json` と `composer.lock` は Git 管理します。)
 
 `.env` ファイルには機密情報が含まれるため、
 
-この作業の前に .env ファイルを作ってコミットをしないように注意します。
+`gitignore` の設定をする前に .env ファイルを作ってコミットをしないように注意します。
 
-git の追跡対象になってしまいます。
+git の追跡対象になってしまうからです。
 
 すでに、
 `git status` で .env が表示されている場合は、
@@ -77,6 +79,10 @@ dir /a .env
 ```cmd
 git ls-files --error-unmatch .env
 ```
+> git ls は git 管理しているディレクトリやファイル一覧
+> -files はファイル
+> --error-unmatch は指定したファイルが見つからなかったらエラーにする
+> つまり `.env` が git 管理されていなかったらエラー
 を実行、
 ```cmd
 error: pathspec '.env' did not match any file(s) known to git
@@ -121,7 +127,7 @@ git commit -m "Remove .env from tracking"
 DB_HOST=localhost
 DB_NAME=your_database_name
 DB_USER=your_user_name
-DB_PASSWORD=your_password
+DB_PASSWORD=<パスワードを記入>
 ```
 
 サンプルとしての、
@@ -182,7 +188,7 @@ Composer で vlucas/phpdotenv をインストールするコマンドを実行�
 ### 動作確認
 vlucas/phpdotenv で、環境変数を読み込めるかを確認。
 
-
+概要は以上です、具体的なインストールを説明していきます。
 ## 具体的なインストール手順
 ### vlucas/phpdotenv を使用するディレクトリまで移動
 コマンドプロンプトを使用して、
@@ -196,12 +202,15 @@ cd <project-nameへのパス>
 ```cmd
 php -v
 ```
-ここで、次のように
+ここで、`vlucas/phpdotenv` が要求する PHP バージョンが表示されることを確認します。
 
-PHP:^7.2.5 || ^8.0
+この記事を書いた時点では、
 
-の範囲の
-PHP のバージョンが表示されれば問題ありません。
+`PHP:^7.2.5 || ^8.0`
+
+です。
+
+実行結果例を示します。
 ```
 PHP 8.3.1 (cli) (built: Jan 16 2024 11:57:11) (ZTS Visual C++ 2019 x64)
 Copyright (c) The PHP Group
@@ -232,13 +241,15 @@ composer require vlucas/phpdotenv
 
 プロジェクトのルートディレクトリに `.env` ファイルを設定。
 
-以下のような環境変数を定義します。
+環境変数を定義します。
+
+例えば、MAMP のローカル環境ですと以下のようになります。
 
 ```env
 DB_HOST=localhost
-DB_NAME=student
+DB_NAME=<データベース名>
 DB_USER=root
-DB_PASSWORD=<パスワードを記入してください>
+DB_PASSWORD=<パスワード>
 ```
 
 プロジェクトのルートディレクトリに
@@ -299,7 +310,12 @@ localhost
 ```
 と表示されれば、環境変数を読み込めています。
 
-OS／Web サーバー側ですでに同名の環境変数があるとそちらを優先する設定になっているので、注意が必要です。
+⚠️**注意** 
+
+`createImmutable` はすでに設定してある環境変数を変更しないことに注意してください。
+
+
+OS／Web サーバー側ですでに同名の環境変数があるとそちらを優先します。
 
 ## 環境変数を読み込めない場合の確認項目
 環境変数が読み込めない場合は、vlucas/phpdotenv がインストールされているか、
@@ -444,6 +460,8 @@ vendor が存在しない
 
 という可能性があります。
 
+これらの場合は、
+
 ```
 project-name\
 │
@@ -485,9 +503,9 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 ### "Dotenv\Dotenv" not found というエラーの場合 3
 
-`require_once` のパスが正しいかを確認
+`require_once` のパスが正しいかを確認して、さらに
 
-`composer install` を実行してさらにエラーになるばあいは、
+`composer install` を実行してもなおにエラーになる場合は、
 
 Composerのオートローダーを再生成してみます。
 コマンドプロンプトで、
@@ -521,7 +539,7 @@ dir /a .env
 
 解決策は、
 
-test-env.php と同じ階層に `.env` を作成する。
+無い場合は、`test-env.php` と同じ階層に `.env` を作成する。
 
 `.env` に拡張子 `.txt` などがついている場合はとりのぞく。
 
@@ -539,7 +557,7 @@ Windowsではメモ帳などで、
 
 になっていることがあります。
 
-また、VsCode でテキストファイルとして認識させようとして、 `.txt` と拡張子をつけてしまうというミスもありえます。
+また、VsCode でプレーンテキストとして認識させようとして、 `.txt` と拡張子をつけてしまうというミスもありえます。
 
 確認するには、コマンドプロンプトで、プロジェクトディレクトリ直下で
 ```cmd
