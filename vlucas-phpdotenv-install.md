@@ -21,7 +21,7 @@ PHP では、
 `vlucas/phpdotenv` は、この `.env` ファイルを読み込み、
 PHP の環境変数として利用できるようにするライブラリです。
 
-## 準備 .env のファイルの設定
+## 準備 : .env ファイルを設定する
 .env ファイルの設定方法と使用法については、
 
 以下の記事を参考にしてください。
@@ -41,12 +41,13 @@ project-name/
 
 プロジェクト ディレクトリのルートに `.gitignore` ファイルを作成。
 
-.gitignore に
+.gitignore に以下の記述をします。
 ```gitignore
 .env
 /vendor/   
 ```
-と記述します。
+`/vendor/` はプロジェクトルートの `vendor` のみを対象にします。
+`composer.json` と `composer.lock` はコミット対象にします。
 
 ( vendor ディレクトリは、通常は git 管理しません。
 composer.lock をコミットしておけば各環境で `composer install` により同じ依存関係を復元できるためです。`composer.json` と `composer.lock` は Git 管理します。)
@@ -58,7 +59,7 @@ composer.lock をコミットしておけば各環境で `composer install` に�
 git の追跡対象になってしまうからです。
 
 すでに、
-`git status` で .env が表示されている場合は、
+`git status` で .env が表示されている場合は、次のように追跡状態を確認します。
 
 ```cmd
 dir /a .env
@@ -153,12 +154,30 @@ DB_PASSWORD=
 
 ## 設定手順の概要
 ### PHP のバージョン確認
-`vlucas/phpdotenv` をインストールするには PHP のバージョンを確認が必要。
+`vlucas/phpdotenv` をインストールするには PHP のバージョン確認が必要。
 
 プロジェクトディレクトリで動くPHP のバージョンが
 
 `vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認。
 
+コマンドプロンプトで、
+```
+composer show --all vlucas/phpdotenv
+```
+を実行して、
+`require` の欄を確認します。
+例えば、この記事の執筆時点では、以下のように表示されます。
+```cmd
+requires
+php ^7.2.5 || ^8.0
+ext-pcre *
+graham-campbell/result-type ^1.2
+phpoption/phpoption ^1.10
+symfony/polyfill-ctype ^1.26
+symfony/polyfill-mbstring ^1.26
+symfony/polyfill-php80 ^1.26
+```
+または、
 以下のリンクから確認できます。
 [The PHP Package Repository](https://packagist.org/packages/vlucas/phpdotenv?)
 
@@ -204,13 +223,32 @@ php -v
 ```
 ここで、`vlucas/phpdotenv` が要求する PHP バージョンが表示されることを確認します。
 
-この記事を書いた時点では、
+要求する PHP バージョンは、コマンドプロンプトで、
+```cmd
+composer show --all vlucas/phpdotenv
+```
+を実行して、`require` の欄を確認します。
+例えば、この記事の執筆時では以下です。
+```cmd
+requires
+php ^7.2.5 || ^8.0
+ext-pcre *
+graham-campbell/result-type ^1.2
+phpoption/phpoption ^1.10
+symfony/polyfill-ctype ^1.26
+symfony/polyfill-mbstring ^1.26
+symfony/polyfill-php80 ^1.26
+```
+
+つまりこの記事を書いた時点では、
 
 `PHP:^7.2.5 || ^8.0`
 
-です。
+が必要です。
 
-実行結果例を示します。
+記事を執筆時点での
+`php -v`
+の実行結果例を示します。
 ```
 PHP 8.3.1 (cli) (built: Jan 16 2024 11:57:11) (ZTS Visual C++ 2019 x64)
 Copyright (c) The PHP Group
@@ -265,13 +303,18 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 //  Dotenv\Dotenv は Dotenv という名前空間
 //  にある Dotenv というクラスという意味。
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+use Dotenv\Dotenv;
+use Dotenv\Exception\InvalidFileException;
+use Dotenv\Exception\InvalidPathException;
+use Dotenv\Exception\ValidationException;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
 try {
     $dotenv->load();
-} catch (Dotenv\Exception\InvalidPathException $e) {
+} catch (InvalidPathException $e) {
 exit('.env ファイルが見つかりません');
-} catch (Dotenv\Exception\InvalidFileException $e) {
-    exit('.env ファイルの形式が正しくありません。');
+} catch (InvalidFileException $e) {
+exit('.env ファイルの形式が正しくありません。');
 }
 
 //  必須の設定値を確認する場合は、以下のように記述します。
@@ -281,8 +324,8 @@ $dotenv->required([
     'DB_NAME',
     'DB_USER',
     'DB_PASSWORD',
-    ])->notEmpty();
-} catch (Dotenv\Exception\ValidationException $e) {
+])->notEmpty();
+} catch (ValidationException $e) {
     error_log($e->getMessage());
     exit('必須の環境変数が設定されていません: ');
 }
@@ -387,7 +430,8 @@ composer show vlucas/phpdotenv
 name     : vlucas/phpdotenv
 descrip. : Loads environment variables from `.env` to `$_ENV` and `$_SERVER` automagically, and optionally to `getenv()`.
 keywords : dotenv, env, environment
-versions : * v5.7.0
+versions : * v5.x.x
+[* v5.x.x はプレイスホルダーで私の環境では v5.7.0 と表示されます。]
 released : 2026-08-24, 4 weeks ago
 type     : library
 
@@ -410,6 +454,14 @@ x.x はプレースホルダーで、
     }
 ```
 となっています。
+⚠️**注意**
+説明した記述がないときには、`composer.json` を手動編集せずに、
+
+コマンドプロンプトでプロジェクトディレクトリ直下に移動して以下のコマンドを実行します。
+```cmd
+composer require vlucas/phpdotenv
+```
+このコマンドにより依存関係が追加されます。
 ## test-env.php と vendor の相対的な位置関係を確認
 test-env.php での記述で
 ```php
@@ -429,13 +481,13 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 ### use の使い方を確認
 test-env.php で
-```
+```php
 use Dotenv\Dotenv;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 ```
 と書くのは、間違いです。
-```
+```php
 use Dotenv\Dotenv;
 ```
 と書いたあとは、
@@ -506,6 +558,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 `require_once` のパスが正しいかを確認して、さらに
 
 `composer install` を実行してもなおにエラーになる場合は、
+
+「vendor を直接操作した場合や、autoload 定義を変更した場合に試す補助的な手段」として、
 
 Composerのオートローダーを再生成してみます。
 コマンドプロンプトで、
