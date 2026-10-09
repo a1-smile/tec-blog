@@ -90,19 +90,32 @@ project-name/
 /vendor/   
 ```
 > vendor ディレクトリは、通常は git 管理しません。
-> composer.lock をコミットしておけば各環境で `composer install` により同じ依存関係を復元できるためです。
+> composer.lock をコミットしておけば各環境で `composer install` により同じ依存関係を、通常は復元できるためです。
 > 一方で `composer.json` と `composer.lock` は Git 管理し、コミット対象にします。
 
 > なお、`/vendor/` はプロジェクトルートの `vendor` のみを対象にします。
 
 `.env` ファイルには機密情報が含まれるため、
 
-`gitignore` の設定をする前に .env ファイルを作ってコミットをしないように注意します。
+安全策として
 
-git の追跡対象になってしまうからです。
+.env を作成する前に .gitignore を設定することを推奨します。
 
-すでに、
-`git status` で .env が表示されている場合は、次のように追跡状態を確認します。
+誤って git add . してしまった場合に追加されにくくするためです。
+
+
+次のような確認が必要です。
+プロジェクトルートで、
+```cmd
+git status --short
+``` 
+ここで .env が表示されている場合は、.gitignore に登録されていない可能性があります。
+
+?? .env と表示された場合、.env は未追跡かつ無視されていません。
+
+M .env や  M .env と表示された場合、
+
+.env はすでに追跡対象です。
 
 ```cmd
 dir /a .env
@@ -118,39 +131,55 @@ dir /a .env
                1 個のファイル                  66 バイト
                0 個のディレクトリ  103,143,612,416 バイトの空き領域
 ```
-
-のように、`.env` が表示されることを確認して、
+のように、`.env` が表示されることを確認して、つぎのコマンドを実行。
+✅ 無視のルールを確認するコマンド
 ```cmd
-git ls-files --error-unmatch .env
+git check-ignore -v --no-index .env
 ```
-> `git ls` は git 管理しているディレクトリやファイル一覧
-> `-files` はファイル
+
+> 通常、
+>`git check-ignore`
+>は追跡済みファイルを無視ルールの判定対象として扱いません。そのため、.gitignore に .env を書いていても、すでに追跡済みの .env に対しては何も出力されるとは限りません。
+.gitignore のルール自体を確認したい場合は、--no-index を付けると明確です。
+
+実行結果が
+```cmd
+.gitignore:1:.env       .env
+```
+と表示されれば、.gitignore の 1 行目の .env という記述によって、.env が無視されています。
+
+>しかし、過去に追跡対象となっているファイルは、継続的に追跡対象のままです。
+
+さらに、
+✅ 追跡対象かを確認するコマンド
+```cmd
+git ls-files --error-unmatch -- .env
+```
+> `git ls-files` は git 管理しているファイルを一覧するコマンド
 > `--error-unmatch` は指定したファイルが見つからなかったらエラーにする
 > つまり `.env` が git 管理されていなかったらエラー
 
 を実行、
-```cmd
-error: pathspec '.env' did not match any file(s) known to git
-Did you forget to 'git add'?
-```
-とエラーが表示される場合は未追跡です。
+コマンドがエラー終了し、.env が出力されなければ、.env は追跡対象ではありません。
 
-未追跡の場合は、
-`.gitignore` に `.env` を追加すれば git 管理されません。
+.env が出力されて正常終了した場合は、追跡対象です。
 
-一方で、エラー表示されない場合は、git の追跡対象になっているので、
+エラー表示されない場合は、git の追跡対象になっているので、
 
 まず、`.gitignore` に `.env` を追加して、
-以下のコマンドを実行します。
+
 ```cmd
-git rm --cached .env
+git add .gitignore
+```
+```cmd
+git rm --cached -- .env
 ```
 そして、
 ```cmd
 git commit -m "Remove .env from tracking"
 ```
 として、git の追跡対象から外します。
-
+>**⚠️重要**
 >.gitignore は
 >「まだ追跡されていない .env」だけを無視します。
 >
@@ -162,6 +191,7 @@ git commit -m "Remove .env from tracking"
 >公開リポジトリなどへ push 済みなら、
 >DB パスワード等は変更（ローテーション）
 >する必要があります。
+>過去にコミットした .env の情報を削除するほうが安全です。
 
 >**⚠️注意**
 >.env を作ったつもりが、.env.txt として保存されていることもあります。
@@ -727,7 +757,10 @@ composer require vlucas/phpdotenv
 ## 補足
 ### vlucas/phpdotenv を使うと、必ず getenv() で読めるわけではありません
 
-vlucas/phpdotenv が環境変数を読み込むライブラリとして説明されています。しかし、createImmutable() の標準的な使い方では、主に次の配列に値が入ります。
+vlucas/phpdotenv が環境変数を読み込むライブラリとして説明しました。
+
+しかし、createImmutable() の標準的な使い方では、
+主に次の配列に値が入ります。
 ```php
 $_ENV['DB_HOST'];
 $_SERVER['DB_HOST'];
@@ -738,50 +771,6 @@ getenv('DB_HOST');
 ```
 getenv() でも取得したい場合は、putenv() を使用する設定を明示的に選ぶ必要があります。
 
-### git ls-files のエラーは「未追跡」と完全に同じ意味ではありません
-次のコマンドがエラーになれば未追跡としています。
-```cmd
-git ls-files --error-unmatch .env
-```
-これは「現在の Git インデックスに .env が登録されていない」ことを示しますが、次のケースも含みます。
-
-env が存在しない
-
-env は存在するが Git の対象外
-
-env が .gitignore で無視されている
-
-パス指定が間違っている
-
-サブディレクトリの .env を確認している
-
-そのため、確認には次も併用した方が正確です。
-```cmd
-git status --short
-```
-変更されたファイルや git が追跡していないファイルが表示されます。
-```cmd
-git check-ignore -v .env
-```
-を実行して、
-```cmd
-.gitignore:1:.env       .env
-```
-と表示されれば、.gitignore の 1 行めの .env という記述によって、.env が無視されています。
-
-しかし、過去に追跡対象となっているファイルは、継続的に追跡対象のままです。
-
-以上を確認して、さらに
-```cmd
-git ls-files --error-unmatch .env
-```
-を実行してエラーが表示されれば、
-
-.env は、
-
-.gitignire で無視されている
-
-追跡対象にもなっていない、と判断できます。
 
 ### .env の場所はcreateImmutable() に渡したパスで決まります
 
@@ -789,12 +778,13 @@ git ls-files --error-unmatch .env
 
 .env は、project\.env に置き、
 
+createImmutable() の記述
 ```php
 $dotenv = Dotenv::createImmutable();
 ```
-の記述は、project\src\test-env.php にあるなら、
+は、project\src\test-env.php にあるなら、
 
-createImmutable() の引数はどのように書いたら良いでしょうか？
+createImmutable() の引数はどのように書いたら良いか疑問に思うかもしれません、答えは
 ```php
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->load();
@@ -817,17 +807,19 @@ __DIR__ は、現在の PHP ファイルが置かれているディレクトリ�
 
 今回は project\src です。
 
-dirname(__DIR__) は、その1つ上のディレクトリを取得します。
+`dirname(__DIR__)` は、その1つ上のディレクトリを取得します。
 
-今回は project です。
+ここでは project です。
 
 Dotenv::createImmutable() の第1引数には、.env が置かれているディレクトリを指定します。
 
 したがって、dirname(__DIR__) を指定すれば、project\.env を読み込めます。
 
+ひとつ上の階層に上がるには、dirname(__DIR__) を使用します。
+
 ### 10. composer.lock に記述があれば、必ずインストールできるとは限りません
 
-composer.lock の説明 では、composer.lock に vlucas/phpdotenv があれば composer install でインストールできると説明されています。
+composer.lock の説明 では、composer.lock に vlucas/phpdotenv があれば composer install でインストールできると説明しました、しかし、
 
 通常は正しいですが、次の条件も必要です。
 
@@ -851,10 +843,10 @@ autoload.php の確認 で、次を確認しています。
 ```cmd
 dir vendor\autoload.php
 ```
-
+しかし、
 これは Composer のオートローダーが存在することの確認にしかなりません。
 
-phpdotenv のインストール確認には、次の方が適切です。
+phpdotenv のインストール確認には、次のコマンドを実行します。
 ```cmd
 composer show vlucas/phpdotenv
 ```
