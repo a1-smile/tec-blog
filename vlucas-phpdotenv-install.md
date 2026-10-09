@@ -1,5 +1,47 @@
-# vlucas/phpdotenv インストール
+# vlucas/phpdotenv インストール [ .env を読み見込むライブラリ ]
+## 結論
+`vlucas/phpdotenv` をインストールする手順は
+✅ `vlucas/phpdotenv` が必要とする PHP バージョンを確認
+コマンドプロンプトで、
+```cmd
+composer show --all vlucas/phpdotenv
+```
+を実行
 
+requires の欄を確認
+✅ プロジェクトのディレクトリへ移動
+```cmd
+cd <project-nameへのパス>
+```
+✅  PHPのバージョンを確認
+```cmd
+where php
+```
+```cmd
+php -v
+```
+`vlucas/phpdotenv` が要求するバージョンであることを確認
+
+>Windows PC で PHP のパスが設定されていれば、どのディレクトリにいても、同じ PHP が実行されます。
+
+✅  Composerが正常に動くことを確認
+```cmd
+composer --version
+```
+
+Composer が使用する PHP を確認
+```cmd
+composer check-platform-reqs
+```
+✅  インストールコマンドを実行
+```cmd
+composer require vlucas/phpdotenv
+```
+✅  インストールと動作の確認
+
+ファイル構成や、
+
+実際に環境変数を読み込めるかを確認します。
 ## 開発環境
 - OS: Windows 11
 - ローカル環境: MAMP
@@ -8,9 +50,10 @@
 ## 背景となる知識
 PHP では、
 
-環境ごとに異なる設定情報を管理する必要があります。
+環境ごとに異なる設定情報（データベース接続情報など）
+を管理する必要があります。
 
-（データベース接続情報や API キーなど）
+
 
 これらの情報をコードに直接記述すると、
 セキュリティリスクが高まるだけでなく、
@@ -46,11 +89,11 @@ project-name/
 .env
 /vendor/   
 ```
-`/vendor/` はプロジェクトルートの `vendor` のみを対象にします。
-`composer.json` と `composer.lock` はコミット対象にします。
+> vendor ディレクトリは、通常は git 管理しません。
+> composer.lock をコミットしておけば各環境で `composer install` により同じ依存関係を復元できるためです。
+> 一方で `composer.json` と `composer.lock` は Git 管理し、コミット対象にします。
 
-( vendor ディレクトリは、通常は git 管理しません。
-composer.lock をコミットしておけば各環境で `composer install` により同じ依存関係を復元できるためです。`composer.json` と `composer.lock` は Git 管理します。)
+> なお、`/vendor/` はプロジェクトルートの `vendor` のみを対象にします。
 
 `.env` ファイルには機密情報が含まれるため、
 
@@ -80,10 +123,11 @@ dir /a .env
 ```cmd
 git ls-files --error-unmatch .env
 ```
-> git ls は git 管理しているディレクトリやファイル一覧
-> -files はファイル
-> --error-unmatch は指定したファイルが見つからなかったらエラーにする
+> `git ls` は git 管理しているディレクトリやファイル一覧
+> `-files` はファイル
+> `--error-unmatch` は指定したファイルが見つからなかったらエラーにする
 > つまり `.env` が git 管理されていなかったらエラー
+
 を実行、
 ```cmd
 error: pathspec '.env' did not match any file(s) known to git
@@ -91,6 +135,7 @@ Did you forget to 'git add'?
 ```
 とエラーが表示される場合は未追跡です。
 
+未追跡の場合は、
 `.gitignore` に `.env` を追加すれば git 管理されません。
 
 一方で、エラー表示されない場合は、git の追跡対象になっているので、
@@ -118,9 +163,12 @@ git commit -m "Remove .env from tracking"
 >DB パスワード等は変更（ローテーション）
 >する必要があります。
 
-また、
- サンプルとして、
- `.env.example` ファイルも作成します
+>**⚠️注意**
+>.env を作ったつもりが、.env.txt として保存されていることもあります。
+>.env.txt として保存された場合は、.env として認識されないですし、
+>git にも普通のファイルだと認識されて、コミットされてしまう可能性があります。
+
+>同様に .gitignore にも .txt などの拡張子を付けないようにきをつけます。
 
  .env ファイルの内容は、
 例えば PDO を使用したデータベース接続情報なら、以下のように記述します。
@@ -130,11 +178,11 @@ DB_NAME=your_database_name
 DB_USER=your_user_name
 DB_PASSWORD=<パスワードを記入>
 ```
-
-サンプルとしての、
-`.env.example` ファイルには
-
-必要な環境変数の名前と記入例を記述し、
+また、
+ サンプルとして、
+ `.env.example` ファイルも作成します
+ 
+`.env.example` ファイルには必要な環境変数の名前と記入例を記述し、
 
 パスワードは空欄にしておきます。
 
@@ -153,53 +201,37 @@ DB_PASSWORD=
 ```
 
 ## 設定手順の概要
-### PHP のバージョン確認
-`vlucas/phpdotenv` をインストールするには PHP のバージョン確認が必要。
-
-プロジェクトディレクトリで動くPHP のバージョンが
-
-`vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認。
-
+### `vlucas/phpdotenv` が必要とする PHP のバージョンを確認
 コマンドプロンプトで、
 ```
 composer show --all vlucas/phpdotenv
 ```
-を実行して、
-`require` の欄を確認します。
-例えば、この記事の執筆時点では、以下のように表示されます。
-```cmd
-requires
-php ^7.2.5 || ^8.0
-ext-pcre *
-graham-campbell/result-type ^1.2
-phpoption/phpoption ^1.10
-symfony/polyfill-ctype ^1.26
-symfony/polyfill-mbstring ^1.26
-symfony/polyfill-php80 ^1.26
-```
+を実行し、requires の欄を確認。
+
 または、
 以下のリンクから確認できます。
 [The PHP Package Repository](https://packagist.org/packages/vlucas/phpdotenv?)
 
-この記事を書いた時点では
-```
-Requires
+### 実行環境で動く PHP のバージョンを確認
+`vlucas/phpdotenv` をインストールするには PHP のバージョン確認が必要。
 
-php: ^7.2.5 || ^8.0
-ext-pcre: *
-graham-campbell/result-type: ^1.2
-phpoption/phpoption: ^1.10
-symfony/polyfill-ctype: ^1.26
-symfony/polyfill-mbstring: ^1.26
-symfony/polyfill-php80: ^1.26
+実行環境で以下を実行。
+```cmd
+where php
 ```
-つまり、
+```cmd
+php -v
+```
+確認した PHP のバージョンが
 
-7.2.5 以上での7.x 系、
-または 8.x 系を使用していることが必要とされています。
+`vlucas/phpdotenv` が必要としている PHP の範囲にあるかを確認。
+
+>Windows PC で、環境変数として PHP にパスを通した PHP のバージョンが使われます。
 
 ### Composer を確認する
 プロジェクトディレクトリで Composer が動くかを確認。
+
+Composer が使用する PHP を確認。
 
 ### インストールコマンド実行
 Composer で vlucas/phpdotenv をインストールするコマンドを実行。
@@ -208,27 +240,16 @@ Composer で vlucas/phpdotenv をインストールするコマンドを実行�
 vlucas/phpdotenv で、環境変数を読み込めるかを確認。
 
 概要は以上です、具体的なインストールを説明していきます。
+
 ## 具体的なインストール手順
-### vlucas/phpdotenv を使用するディレクトリまで移動
-コマンドプロンプトを使用して、
-`cd` コマンドでプロジェクトのルートディレクトリに移動します。
-```cmd
-cd <project-nameへのパス>
-```
 
-### PHP のバージョン確認
-`php -v` コマンドで現在の PHP のバージョンを確認します。
-```cmd
-php -v
-```
-ここで、`vlucas/phpdotenv` が要求する PHP バージョンが表示されることを確認します。
-
-要求する PHP バージョンは、コマンドプロンプトで、
+### `vlucas/phpdotenv` が必要とする PHP バージョンを確認
+>必要とする PHP バージョンは、コマンドプロンプトで、
 ```cmd
 composer show --all vlucas/phpdotenv
 ```
-を実行して、`require` の欄を確認します。
-例えば、この記事の執筆時では以下です。
+>を実行して、`requires` の欄を確認します。
+>例えば、この記事の執筆時では以下です。
 ```cmd
 requires
 php ^7.2.5 || ^8.0
@@ -239,12 +260,31 @@ symfony/polyfill-ctype ^1.26
 symfony/polyfill-mbstring ^1.26
 symfony/polyfill-php80 ^1.26
 ```
-
-つまりこの記事を書いた時点では、
+>つまりこの記事を書いた時点では、
 
 `PHP:^7.2.5 || ^8.0`
 
-が必要です。
+>が必要です。
+
+ただし、composer show --all vlucas/phpdotenv はパッケージの候補情報を表示するものであり、プロジェクトの依存関係や PHP バージョンを考慮して、最終的にどのバージョンが選ばれるかを完全に示すものではありません。
+
+### vlucas/phpdotenv を使用するディレクトリまで移動
+コマンドプロンプトを使用して、
+`cd` コマンドでプロジェクトのルートディレクトリに移動します。
+```cmd
+cd <project-nameへのパス>
+```
+
+### PHP のバージョン確認
+`php -v` コマンドで PHP のバージョンを確認します。
+```cmd
+where php
+```
+でどの php が使われるかを確認して
+```cmd
+php -v
+```
+>ここで、`vlucas/phpdotenv` が要求する PHP バージョンが表示されることを確認します。
 
 記事を執筆時点での
 `php -v`
@@ -254,7 +294,10 @@ PHP 8.3.1 (cli) (built: Jan 16 2024 11:57:11) (ZTS Visual C++ 2019 x64)
 Copyright (c) The PHP Group
 Zend Engine v4.3.1, Copyright (c) Zend Technologies
 ```
+`PHP 8.3.1` なので、
+`PHP:^7.2.5 || ^8.0`
 
+という条件をみたしています。
 ### Composer が動くことを確認
 
 `composer --version` コマンドで Composer のバージョンを確認します。
@@ -262,10 +305,18 @@ Zend Engine v4.3.1, Copyright (c) Zend Technologies
 composer --version
 ```
 次のように Composer のバージョンが表示されれば問題ありません。
-```
+```cmd
 Composer version 2.10.2 2026-07-01 11:24:45
 PHP version 8.3.1 (C:\MAMP\bin\php\php8.3.1\php.exe)
 Run the "diagnose" command to get more detailed diagnostics output.
+```
+
+念のため次のコマンドでも、
+
+Composer が使用する PHP を確認しておきます。
+
+```cmd
+composer check-platform-reqs
 ```
 ### vlucas/phpdotenv のインストール
 Composer を使用してインストールします。
@@ -281,7 +332,7 @@ composer require vlucas/phpdotenv
 
 環境変数を定義します。
 
-例えば、MAMP のローカル環境ですと以下のようになります。
+例えば、MAMP のローカル環境で、 PDO 接続情報ですと以下のようになります。
 
 ```env
 DB_HOST=localhost
@@ -358,7 +409,7 @@ localhost
 `createImmutable` はすでに設定してある環境変数を変更しないことに注意してください。
 
 
-OS／Web サーバー側ですでに同名の環境変数があるとそちらを優先します。
+OS／Web サーバー側などで、すでに同名の環境変数が設定してある場合は既存値を上書きしません。
 
 ## 環境変数を読み込めない場合の確認項目
 環境変数が読み込めない場合は、vlucas/phpdotenv がインストールされているか、
@@ -508,6 +559,8 @@ C:\dev\ua-check>php test-env.php PHP Fatal error: Uncaught Error: Class "Dotenv\
 
 vlucas/phpdotenv が未インストール、
 
+または、
+
 vendor が存在しない
 
 という可能性があります。
@@ -557,7 +610,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 `require_once` のパスが正しいかを確認して、さらに
 
-`composer install` を実行してもなおにエラーになる場合は、
+`composer install` を実行してもなおエラーになる場合は、
 
 「vendor を直接操作した場合や、autoload 定義を変更した場合に試す補助的な手段」として、
 
@@ -611,7 +664,7 @@ Windowsではメモ帳などで、
 
 になっていることがあります。
 
-また、VsCode でプレーンテキストとして認識させようとして、 `.txt` と拡張子をつけてしまうというミスもありえます。
+また、VsCode でプレーンテキストとして認識させようと、 `.txt` と拡張子をつけてしまうというミスもありえます。
 
 確認するには、コマンドプロンプトで、プロジェクトディレクトリ直下で
 ```cmd
@@ -642,32 +695,166 @@ dir /a
 ## まとめ
 `vlucas/phpdotenv` をインストールする手順は
 
-1. プロジェクトのディレクトリへ移動
+✅ `vlucas/phpdotenv` が必要とする PHP バージョンを確認
+>要求する PHP バージョンは、コマンドプロンプトで、
+```cmd
+composer show --all vlucas/phpdotenv
+```
+>を実行して、`requires` の欄を確認します。
+
+✅  プロジェクトのディレクトリへ移動
 ```cmd
 cd <project-nameへのパス>
 ```
-2. PHPのバージョンを確認
+✅  PHPのバージョンを確認
 ```cmd
 php -v
 ```
-3. Composerが正常に動くことを確認
+✅  Composerが正常に動くことを確認
 ```cmd
 composer --version
 ```
-4. インストールコマンドを実行
+✅  インストールコマンドを実行
 ```cmd
 composer require vlucas/phpdotenv
 ```
-5. インストールと動作の確認
+✅  インストールと動作の確認
 
 ファイル構成や、
 
 実際に環境変数を読み込めるかを確認します。
 
+## 補足
+### vlucas/phpdotenv を使うと、必ず getenv() で読めるわけではありません
 
+vlucas/phpdotenv が環境変数を読み込むライブラリとして説明されています。しかし、createImmutable() の標準的な使い方では、主に次の配列に値が入ります。
+```php
+$_ENV['DB_HOST'];
+$_SERVER['DB_HOST'];
+```
+一方、次のコードで取得できるとは限りません。
+```php
+getenv('DB_HOST');
+```
+getenv() でも取得したい場合は、putenv() を使用する設定を明示的に選ぶ必要があります。
 
+### git ls-files のエラーは「未追跡」と完全に同じ意味ではありません
+次のコマンドがエラーになれば未追跡としています。
+```cmd
+git ls-files --error-unmatch .env
+```
+これは「現在の Git インデックスに .env が登録されていない」ことを示しますが、次のケースも含みます。
 
+env が存在しない
 
+env は存在するが Git の対象外
 
+env が .gitignore で無視されている
 
+パス指定が間違っている
 
+サブディレクトリの .env を確認している
+
+そのため、確認には次も併用した方が正確です。
+```cmd
+git status --short
+```
+変更されたファイルや git が追跡していないファイルが表示されます。
+```cmd
+git check-ignore -v .env
+```
+を実行して、
+```cmd
+.gitignore:1:.env       .env
+```
+と表示されれば、.gitignore の 1 行めの .env という記述によって、.env が無視されています。
+
+しかし、過去に追跡対象となっているファイルは、継続的に追跡対象のままです。
+
+以上を確認して、さらに
+```cmd
+git ls-files --error-unmatch .env
+```
+を実行してエラーが表示されれば、
+
+.env は、
+
+.gitignire で無視されている
+
+追跡対象にもなっていない、と判断できます。
+
+### .env の場所はcreateImmutable() に渡したパスで決まります
+
+`vlucas/phpdotenv` で
+
+.env は、project\.env に置き、
+
+```php
+$dotenv = Dotenv::createImmutable();
+```
+の記述は、project\src\test-env.php にあるなら、
+
+createImmutable() の引数はどのように書いたら良いでしょうか？
+```php
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+```
+です。
+
+なぜ dirname(__DIR__) なのでしょうか？
+
+ディレクトリ構成を次のように考えます。
+```
+project/
+├── .env
+├── vendor/
+└── src/
+    └── test-env.php
+```
+順番に説明します。
+
+__DIR__ は、現在の PHP ファイルが置かれているディレクトリのパスを表します。
+
+今回は project\src です。
+
+dirname(__DIR__) は、その1つ上のディレクトリを取得します。
+
+今回は project です。
+
+Dotenv::createImmutable() の第1引数には、.env が置かれているディレクトリを指定します。
+
+したがって、dirname(__DIR__) を指定すれば、project\.env を読み込めます。
+
+### 10. composer.lock に記述があれば、必ずインストールできるとは限りません
+
+composer.lock の説明 では、composer.lock に vlucas/phpdotenv があれば composer install でインストールできると説明されています。
+
+通常は正しいですが、次の条件も必要です。
+
+対応する composer.json がある
+
+現在の PHP バージョンが要件を満たす
+
+必要な PHP 拡張が有効
+
+Composer がパッケージを取得できる
+
+composer.lock が壊れていない
+
+プラットフォーム要件を満たしている
+
+特に PHP のバージョンや拡張機能が不足している場合、composer.lock に記述があってもインストールは失敗します。
+
+### vendor\autoload.php が存在するだけでは、phpdotenv のインストール確認にはなりません
+
+autoload.php の確認 で、次を確認しています。
+```cmd
+dir vendor\autoload.php
+```
+
+これは Composer のオートローダーが存在することの確認にしかなりません。
+
+phpdotenv のインストール確認には、次の方が適切です。
+```cmd
+composer show vlucas/phpdotenv
+```
