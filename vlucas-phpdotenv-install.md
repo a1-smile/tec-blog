@@ -28,7 +28,7 @@ php -v
 ```cmd
 composer --version
 ```
-
+⚠️ **composer.json がないときは以下のコマンドはエラーになります。**
 Composer が使用する PHP を確認
 ```cmd
 composer check-platform-reqs
@@ -379,6 +379,9 @@ Run the "diagnose" command to get more detailed diagnostics output.
 念のため次のコマンドでも、
 
 Composer が使用する PHP を確認しておきます。
+
+
+⚠️ **composer.json がないときは以下のコマンドはエラーになります。**
 
 ```cmd
 composer check-platform-reqs
