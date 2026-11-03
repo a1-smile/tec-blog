@@ -5,7 +5,8 @@ OS:Windows11
 PHP:8.3.1
 
 テスト環境:MAMP
-# 設定
+# 設定は以下のようにしました    
+
 ## ビルトインの Language Features for PHP fils は無効化せず、`setting.json` で機能調整
 
 ## 入力補完のショートカット `Ctrl + Space` が機能しなかったため、`Alt + /` に変更
@@ -63,7 +64,7 @@ Leave: PHP Language Basics
 ```
 
 なお、`"php.validate.enable": false,` により
-以下の 2 行と同様な設定は無視されます。
+以下の 2 行は無視されます。
 ```json
 // 以下の 2 行は  php.validate.enable: false の間は参照されない設定です。
 "php.validate.executablePath": "C:\\MAMP\\bin\\php\\php8.3.1\\php.exe",
