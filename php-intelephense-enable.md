@@ -71,19 +71,27 @@ Leave: PHP Language Basics
 Intelephense への理解が深まり、 settings.json の記入にも慣れるというメリットもあります。
 
 ## settings.json の設定で機能を調整
-`settings.json` では以下の行4を追記、又は同じ項目の記述がある場合は編集します。
+`settings.json` では以下を追記、又は同じ項目の記述がある場合は編集します。
 
+次のように、
+`php.validate.enable` を無効にすると、VS Code 標準の PHP リンターが無効になります。
 ```json
 // PHP の標準バリデーションを無効
 "php.validate.enable": false,
 ```
+
+
+PHP に限定して、フォーマッターに Intelephense を指定 `"[php]"`の中に設定することで、他の言語には影響しません。
+
+`}` の後のカンマを忘れないようにします。
 ```json
-// フォーマットは Intelephense に指定
-"editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
-```
-```json
-// 保存時に整形される
-"editor.formatOnSave": true,
+"[php]": {
+  // PHP のフォーマッターに Intelephense を指定
+  "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+
+  // PHP ファイルの保存時に自動整形
+  "editor.formatOnSave": true
+},
 ```
 ```json
 // Language Features for PHP files の基本補完を無効化
@@ -125,9 +133,9 @@ Intelephense への理解が深まり、 settings.json の記入にも慣れる�
 
 にカーソルをあわせて `F12` を押すと、定義元へ移動。
 
-複数候補がある場合は、ちいさな画面枠に候補を表示。
+複数候補がある場合は、エディター内の一覧に候補を表示。
 
-`Alt + F12` でちいさな画面枠で定義元を表示。
+`Alt + F12` でエディター内の一覧で定義元を表示。
 
 ## `Shift + F12` 参照の検索
 - 変数
@@ -137,9 +145,10 @@ Intelephense への理解が深まり、 settings.json の記入にも慣れる�
 - クラス
 - インターフェイス
 
-にカーソルを合わせて `Shift + F12` を押すと、そのシンボルが使用されている場所を小さい画面枠で表示。
+にカーソルを合わせて `Shift + F12` を押すと、そのシンボルが使用されている場所をエディター内の一覧で表示。
 
 リファクタリングするときに、どこまで影響が及ぶかを調べられるので、便利です。
+⚠️--参照検索は便利ですが、動的な呼び出しや解析対象外のファイルなど、すべての影響を検出できるとは限りません。文字列検索も併用することをお勧めします。--
 
 ## `Alt + /` を入力補完に割り当て
 シンボル名を途中まで入力し、`Alt + /` をおすと、候補が表示されるように設定しました、設定方法はこの記事の設定のところで説明しました。
